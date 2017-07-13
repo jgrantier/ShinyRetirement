@@ -1,0 +1,86 @@
+---
+title: "Shiny Retirement"
+author: "Julie Grantier"
+date: "7/13/2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(ggplot2)
+library(scales)
+```
+
+## Shiny Retirement App
+
+- Though America is aging, millions of Americans have not saved enough for retirement.  Some haven't even begun to save. This simple Shiny app can start people on the right path.
+- By manipulating some basic information, a user can see just how different factors can influence their retirement savings.
+- Play around with it and find a way to have a Shiny Retirement!
+
+## A Retirement Example
+```{r data}
+curAge <- 20
+retAge <- 65
+curSavings <- 10000
+annualSavings <- 6000
+returnRate <- 6
+inflatRate <- 2
+expectedIncome <- 1000
+expectedExpense <- 5000
+timeTilRetirement <- retAge-curAge
+timeInRetirement <- 100-retAge
+endAge <- 100
+rateOfReturn <- ((1 + returnRate/100)/(1 + inflatRate/100))
+annualNetExpense <- 12*(expectedExpense-expectedIncome)
+total <- curSavings
+for(i in 1:timeTilRetirement) {
+      total <- rbind(total,(total[i] + annualSavings)*rateOfReturn )
+}
+
+for(j in 1:timeInRetirement) {
+      if (total[j+timeTilRetirement]>0) total <- rbind(total, (total[j+timeTilRetirement]-annualNetExpense)*rateOfReturn)
+      else {
+            endAge <- retAge + j-1
+            break
+      }
+}
+
+
+age <- curAge:endAge
+rownames(age) <- c()
+rownames(total) <- c()
+moneyByAge <- data.frame(cbind(age, total))
+moneyByAge <- setNames(moneyByAge, c("age","total"))
+```
+- Let's say you are currently `r curAge` years old and plan to retire at `r retAge`.  
+
+- You have already saved \$`r format(curSavings, scientific=FALSE, big.mark = ",")` and plan to put an additional \$`r format(annualSavings, scientific=FALSE, big.mark = ",")` in the account each year.  
+
+- You are expecting a return of `r returnRate`% and an inflation rate of `r inflatRate`%.
+
+- After retirement, if you expect \$`r format(expectedIncome, scientific=FALSE, big.mark = ",")` each month in pensions and \$`r format(expectedExpense, scientific=FALSE, big.mark = ",")` in expenses, your money will last until you are about `r moneyByAge[nrow(moneyByAge),1]` years old.
+
+- See what happens to your money in the graph on the next page.
+
+## The Plot From Shiny Retirement
+
+```{r cars, echo = FALSE}
+
+           p <-  ggplot(moneyByAge, aes(x=  moneyByAge$age, y= moneyByAge$total)) + 
+                  geom_area( fill="blue", alpha=.2)+ 
+                  geom_line()+
+                  scale_y_continuous(labels = comma)+
+                  labs(x = "Your Age", y = "Your Retirement Savings")
+           print(p)
+```
+
+## Where Do I Find Shiny Retirement?
+
+- The Shiny Retirement App can be accessed here: <https://jgrantier.shinyapps.io/shiny_retirement/>
+
+- This presentation is available here: <http://rpubs.com/jgrantier/291188>
+
+- The source code for the App (ui.R and server.R) and the Rmarkdown for this presentation can be found on GitHub: <https://github.com/jgrantier/ShinyRetirement>
+
+
+
